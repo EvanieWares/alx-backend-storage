@@ -2,18 +2,13 @@
 """
 Module 12-log_stats
 
-A script that provides some stats about Nginx logs stored in MongoDB
+Provides some stats about Nginx logs stored in MongoDB
 """
 from pymongo import MongoClient
 
-
-def log_stats():
-    """
-    Provides some stats about Nginx logs stored in MongoDB
-    """
+if __name__ == "__main__":
     client = MongoClient('mongodb://127.0.0.1:27017')
-    logs_database = client.logs
-    nginx_collection = logs_database.nginx
+    nginx_collection = client.logs.nginx
     total = nginx_collection.count_documents({})
     get = nginx_collection.count_documents({"method": "GET"})
     post = nginx_collection.count_documents({"method": "POST"})
@@ -30,7 +25,3 @@ def log_stats():
     print(f"\tmethod PATCH: {patch}")
     print(f"\tmethod DELETE: {delete}")
     print(f"{path} status check")
-
-
-if __name__ == "__main__":
-    log_stats()
