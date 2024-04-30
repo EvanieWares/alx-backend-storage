@@ -2,11 +2,15 @@
 """
 Module 12-log_stats
 
-Provides some stats about Nginx logs stored in MongoDB
+A script that provides some stats about Nginx logs stored in MongoDB
 """
 from pymongo import MongoClient
 
-if __name__ == "__main__":
+
+def log_stats():
+    """
+    Provides some stats about Nginx logs stored in MongoDB
+    """
     client = MongoClient('mongodb://127.0.0.1:27017')
     logs_database = client.logs
     nginx_collection = logs_database.nginx
@@ -26,3 +30,7 @@ if __name__ == "__main__":
     print(f"\tmethod PATCH: {patch}")
     print(f"\tmethod DELETE: {delete}")
     print(f"{path} status check")
+
+
+if __name__ == "__main__":
+    log_stats()
