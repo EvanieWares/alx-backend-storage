@@ -9,19 +9,20 @@ from functools import wraps
 redis_client = redis.Redis()
 
 
-def wrap_requests(fn: Callable) -> Callable:
-    """Tracks how many times a particular URL was accessed"""
+def wrap_requests(method: Callable) -> Callable:
+    """Tracks how many times a particular URL is accessed"""
 
-    @wraps(fn)
-    def wrapper(url):
+    @wraps(method)
+    def wrapper(*args, **kwargs):
         """Wrapper"""
+        url = args[0]
         redis_client.incr(f"count:{url}")
-        cached_response = redis_client.get(f"cached:{url}")
+        cached_response = redis_client.get(url)
         if cached_response:
             return cached_response.decode('utf-8')
-        result = fn(url)
-        redis_client.setex(f"cached:{url}", 10, result)
-        return result
+        result = method(url)
+        redis_client.setex(f"{url}, 10, {result}")
+        return method(*args, **kwargs)
 
     return wrapper
 
