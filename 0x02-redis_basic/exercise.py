@@ -46,18 +46,38 @@ def call_history(method: Callable) -> Callable:
     - Callable: The value returned by the original function
     """
     key = method.__qualname__
-    i = "".join([key, ":inputs"])
-    o = "".join([key, ":outputs"])
+    inputs = "".join([key, ":inputs"])
+    outputs = "".join([key, ":outputs"])
 
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         """Conserve the original function’s name, docstring, etc"""
-        self._redis.rpush(i, str(args))
-        res = method(self, *args, **kwargs)
-        self._redis.rpush(o, str(res))
-        return res
+        self._redis.rpush(inputs, str(args))
+        result = method(self, *args, **kwargs)
+        self._redis.rpush(outputs, str(result))
+        return result
 
     return wrapper
+
+
+def replay(method: Callable) -> None:
+    """
+    Displays the history of calls of a particular function
+
+    Parameters:
+    - method (Callable): The function to display history from
+    """
+    key = method.__qualname__
+    inputs = f"{key}:inputs"
+    outputs = f"{key}:outputs"
+    redis = method.__self__._redis
+    method_count = redis.get(key).decode('utf-8')
+
+    print(f'{key} was called {method_count} times:')
+    IOTuple = zip(redis.lrange(inputs, 0, -1), redis.lrange(outputs, 0, -1))
+    for i, o in list(IOTuple):
+        attr, data = i.decode("utf-8"), o.decode("utf-8")
+        print(f'{key}(*{attr}) -> {data}')
 
 
 class Cache:
